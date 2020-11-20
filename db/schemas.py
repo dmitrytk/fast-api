@@ -1,15 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
 
-class Field(BaseModel):
-    name: str
-    type: Optional[str] = None
-    location: Optional[str] = None
-
-
-class Well(BaseModel):
+class WellCreate(BaseModel):
     name: str
     pad: Optional[str] = None
     type: Optional[str] = None
@@ -20,3 +14,24 @@ class Well(BaseModel):
     lng: Optional[float] = None
     x: Optional[float] = None
     y: Optional[float] = None
+
+
+class Well(WellCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class FieldCreate(BaseModel):
+    name: str
+    type: Optional[str] = None
+    location: Optional[str] = None
+    wells: List[Well] = []
+
+
+class Field(FieldCreate):
+    id: int
+
+    class Config:
+        orm_mode = True

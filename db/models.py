@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -30,4 +30,5 @@ class Well(Base):
     x = Column(Numeric)
     y = Column(Numeric)
 
+    field_id = Column(Integer, ForeignKey("fields.id"))
     field = relationship("Field", back_populates="wells")

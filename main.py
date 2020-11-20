@@ -1,24 +1,35 @@
-from functools import lru_cache
+from typing import List
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-import config
+from db import crud, models, schemas
+from db.database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-@lru_cache()
-def get_settings():
-    return config.Settings()
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World "}
+@app.post("/fields/", response_model=schemas.Field)
+def create_field(field: schemas.FieldCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_field(db=db, field=field)
+    except IntegrityError:
+        raise HTTPException(status_code=400, detail="Field with this name already exists")
 
 
-@app.get("/info")
-async def info(settings: config.Settings = Depends(get_settings)):
-    return {
-        "app_name": settings.postgres_user,
-    }
+@app.get("/fields/", response_model=List[schemas.Field])
+async def read_fields(db: Session = Depends(get_db)):
+    fields = await crud.get_fields(db)
+    return fields
