@@ -20,6 +20,10 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/")
+def home():
+    return {'message':'home'}
+
 
 @app.post("/fields/", response_model=schemas.Field)
 def create_field(field: schemas.FieldCreate, db: Session = Depends(get_db)):
@@ -30,6 +34,6 @@ def create_field(field: schemas.FieldCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/fields/", response_model=List[schemas.Field])
-async def read_fields(db: Session = Depends(get_db)):
-    fields = await crud.get_fields(db)
+def read_fields(db: Session = Depends(get_db)):
+    fields = crud.get_fields(db)
     return fields
