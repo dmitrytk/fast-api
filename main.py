@@ -1,22 +1,9 @@
 from fastapi import FastAPI
-from tortoise import Tortoise
+from tortoise.contrib.fastapi import register_tortoise
 
 from routers import field_router, well_router
-from utils import populate, initdb
 
 app = FastAPI()
-
-
-@app.on_event("startup")
-async def startup_event():
-    await initdb()
-    await populate()
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await Tortoise.close_connections()
-
 
 app.include_router(field_router.router,
                    prefix="/fields",
@@ -32,3 +19,12 @@ app.include_router(well_router.router,
 @app.get("/")
 def home():
     return {'message': 'Hello world!'}
+
+
+register_tortoise(
+    app,
+    db_url="sqlite://:memory:",
+    modules={"models": ["db.models"]},
+    generate_schemas=True,
+    add_exception_handlers=True,
+)

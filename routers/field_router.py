@@ -6,6 +6,7 @@ from services import field_service
 router = APIRouter()
 
 
+# BASIC ROUTES
 @router.get("/", tags=["fields"])
 async def read_fields():
     return await field_service.get_fields()
