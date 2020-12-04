@@ -1,34 +1,32 @@
-from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
-from sqlalchemy.orm import relationship
-
-from .database import Base
+from tortoise import models, fields
+from tortoise.contrib.pydantic import pydantic_model_creator
 
 
-class Field(Base):
-    __tablename__ = "fields"
+class Field(models.Model):
+    name = fields.CharField(max_length=50, unique=True)
+    type = fields.CharField(max_length=50, null=True)
+    location = fields.CharField(max_length=50, null=True)
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    type = Column(String)
-    location = Column(String)
+    def __str__(self):
+        return self.name
 
-    wells = relationship("Well", back_populates="field")
+    class Meta:
+        table = "fields"
 
 
-class Well(Base):
-    __tablename__ = "wells"
+class Well(models.Model):
+    name = fields.CharField(max_length=50)
+    type = fields.CharField(max_length=50, null=True)
+    bottom = fields.DecimalField(max_digits=20, decimal_places=2, null=True)
+    field = fields.ForeignKeyField('models.Field', related_name='wells')
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    pad = Column(String)
-    type = Column(String)
-    status = Column(String)
-    alt = Column(Numeric)
-    bottom = Column(Numeric)
-    lat = Column(Numeric)
-    lng = Column(Numeric)
-    x = Column(Numeric)
-    y = Column(Numeric)
+    class Meta:
+        table = "wells"
+        unique_together = (("field", "name"),)
 
-    field_id = Column(Integer, ForeignKey("fields.id"))
-    field = relationship("Field", back_populates="wells")
+
+FieldModel = pydantic_model_creator(Field, name="Field")
+FieldInModel = pydantic_model_creator(Field, name="FieldIn", exclude_readonly=True)
+
+WellModel = pydantic_model_creator(Well, name="Well")
+WellInModel = pydantic_model_creator(Well, name="WellIn", exclude_readonly=True)
